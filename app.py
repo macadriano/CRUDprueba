@@ -120,6 +120,7 @@ def get_user(user_id):
         'name': user['name'],
         'username': user['username'],
         'email': user['email'],
+        'password': user['password'],
         'age': user['age'],
         'created_at': user['created_at']
     })
