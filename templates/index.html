@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD de Usuarios</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+        }
+
+        .btn-edit:hover {
+            box-shadow: 0 5px 15px rgba(254, 202, 87, 0.3);
+        }
+
+        .users-section {
+            margin-top: 30px;
+        }
+
+        .users-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .user-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .user-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .user-card p {
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .user-actions {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                min-width: auto;
+            }
+            
+            .users-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 CRUD de Usuarios</h1>
+            <p>Sistema completo de gestión de usuarios</p>
+        </div>
+
+        <div class="content">
+            <div id="alert-container"></div>
+
+            <div class="form-section">
+                <h2 id="form-title">➕ Agregar Nuevo Usuario</h2>
+                <form id="user-form">
+                    <input type="hidden" id="user-id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Nombre completo *</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="age">Edad</label>
+                            <input type="number" id="age" name="age" min="1" max="120">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn" id="submit-btn">Crear Usuario</button>
+                    <button type="button" class="btn btn-edit" id="cancel-btn" style="display: none;" onclick="cancelEdit()">Cancelar</button>
+                </form>
+            </div>
+
+            <div class="users-section">
+                <h2>👥 Lista de Usuarios</h2>
+                <div id="users-container">
+                    <div class="loading">Cargando usuarios...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let isEditing = false;
+        let editingUserId = null;
+
+        // DOM Elements
+        const userForm = document.getElementById('user-form');
+        const usersContainer = document.getElementById('users-container');
+        const alertContainer = document.getElementById('alert-container');
+        const formTitle = document.getElementById('form-title');
+        const submitBtn = document.getElementById('submit-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUsers();
+            userForm.addEventListener('submit', handleFormSubmit);
+        });
+
+        // Show alert messages
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Load all users
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/users`);
+                const users = await response.json();
+                
+                if (users.length === 0) {
+                    usersContainer.innerHTML = '<div class="loading">No hay usuarios registrados</div>';
+                } else {
+                    displayUsers(users);
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                usersContainer.innerHTML = '<div class="loading">Error al cargar usuarios</div>';
+            }
+        }
+
+        // Display users in cards
+        function displayUsers(users) {
+            const usersGrid = document.createElement('div');
+            usersGrid.className = 'users-grid';
+            
+            users.forEach(user => {
+                const userCard = document.createElement('div');
+                userCard.className = 'user-card';
+                
+                userCard.innerHTML = `
+                    <h3>${user.name}</h3>
+                    <p><strong>📧 Email:</strong> ${user.email}</p>
+                    <p><strong>🎂 Edad:</strong> ${user.age || 'No especificada'}</p>
+                    <p><strong>📅 Creado:</strong> ${formatDate(user.created_at)}</p>
+                    <div class="user-actions">
+                        <button class="btn btn-edit" onclick="editUser(${user.id})">✏️ Editar</button>
+                        <button class="btn btn-danger" onclick="deleteUser(${user.id})">🗑️ Eliminar</button>
+                    </div>
+                `;
+                
+                usersGrid.appendChild(userCard);
+            });
+            
+            usersContainer.innerHTML = '';
+            usersContainer.appendChild(usersGrid);
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Handle form submission
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(userForm);
+            const userData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                age: formData.get('age') ? parseInt(formData.get('age')) : null
+            };
+
+            try {
+                let response;
+                if (isEditing) {
+                    response = await fetch(`${API_BASE}/users/${editingUserId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(userData)
+                    });
+                } else {
+                    response = await fetch(`${API_BASE}/users`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(userData)
+                    });
+                }
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert(isEditing ? 'Usuario actualizado exitosamente' : 'Usuario creado exitosamente');
+                    userForm.reset();
+                    cancelEdit();
+                    loadUsers();
+                } else {
+                    showAlert(result.error || 'Error al procesar la solicitud', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error de conexión', 'error');
+            }
+        }
+
+        // Edit user
+        async function editUser(userId) {
+            try {
+                const response = await fetch(`${API_BASE}/users/${userId}`);
+                const user = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('name').value = user.name;
+                    document.getElementById('email').value = user.email;
+                    document.getElementById('age').value = user.age || '';
+                    
+                    isEditing = true;
+                    editingUserId = userId;
+                    
+                    formTitle.textContent = '✏️ Editar Usuario';
+                    submitBtn.textContent = 'Actualizar Usuario';
+                    cancelBtn.style.display = 'inline-block';
+                    
+                    document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    showAlert(user.error || 'Error al cargar usuario', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error de conexión', 'error');
+            }
+        }
+
+        // Cancel edit
+        function cancelEdit() {
+            isEditing = false;
+            editingUserId = null;
+            
+            formTitle.textContent = '➕ Agregar Nuevo Usuario';
+            submitBtn.textContent = 'Crear Usuario';
+            cancelBtn.style.display = 'none';
+            
+            userForm.reset();
+        }
+
+        // Delete user
+        async function deleteUser(userId) {
+            if (!confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/users/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert('Usuario eliminado exitosamente');
+                    loadUsers();
+                } else {
+                    showAlert(result.error || 'Error al eliminar usuario', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error de conexión', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
