@@ -18,11 +18,24 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
+            username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
             age INTEGER,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Add new columns if they don't exist (for existing databases)
+    try:
+        cursor.execute('ALTER TABLE users ADD COLUMN username TEXT')
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+    
+    try:
+        cursor.execute('ALTER TABLE users ADD COLUMN password TEXT')
+    except sqlite3.OperationalError:
+        pass  # Column already exists
     conn.commit()
     conn.close()
 
@@ -50,6 +63,7 @@ def get_users():
         users_list.append({
             'id': user['id'],
             'name': user['name'],
+            'username': user['username'],
             'email': user['email'],
             'age': user['age'],
             'created_at': user['created_at']
@@ -62,15 +76,15 @@ def create_user():
     """Create a new user"""
     data = request.get_json()
     
-    if not data or not data.get('name') or not data.get('email'):
-        return jsonify({'error': 'Name and email are required'}), 400
+    if not data or not data.get('name') or not data.get('username') or not data.get('email') or not data.get('password'):
+        return jsonify({'error': 'Nombre, nombre de usuario, email y contraseña son requeridos'}), 400
     
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
         cursor.execute(
-            'INSERT INTO users (name, email, age) VALUES (?, ?, ?)',
-            (data['name'], data['email'], data.get('age'))
+            'INSERT INTO users (name, username, email, password, age) VALUES (?, ?, ?, ?, ?)',
+            (data['name'], data['username'], data['email'], data['password'], data.get('age'))
         )
         conn.commit()
         user_id = cursor.lastrowid
@@ -79,13 +93,14 @@ def create_user():
         return jsonify({
             'id': user_id,
             'name': data['name'],
+            'username': data['username'],
             'email': data['email'],
             'age': data.get('age'),
-            'message': 'User created successfully'
+            'message': 'Usuario creado exitosamente'
         }), 201
     except sqlite3.IntegrityError:
         conn.close()
-        return jsonify({'error': 'Email already exists'}), 400
+        return jsonify({'error': 'Email o nombre de usuario ya existe'}), 400
     except Exception as e:
         conn.close()
         return jsonify({'error': str(e)}), 500
@@ -103,6 +118,7 @@ def get_user(user_id):
     return jsonify({
         'id': user['id'],
         'name': user['name'],
+        'username': user['username'],
         'email': user['email'],
         'age': user['age'],
         'created_at': user['created_at']
@@ -125,10 +141,12 @@ def update_user(user_id):
     
     try:
         conn.execute(
-            'UPDATE users SET name = ?, email = ?, age = ? WHERE id = ?',
+            'UPDATE users SET name = ?, username = ?, email = ?, password = ?, age = ? WHERE id = ?',
             (
                 data.get('name', user['name']),
+                data.get('username', user['username']),
                 data.get('email', user['email']),
+                data.get('password', user['password']),
                 data.get('age', user['age']),
                 user_id
             )
@@ -136,10 +154,10 @@ def update_user(user_id):
         conn.commit()
         conn.close()
         
-        return jsonify({'message': 'User updated successfully'})
+        return jsonify({'message': 'Usuario actualizado exitosamente'})
     except sqlite3.IntegrityError:
         conn.close()
-        return jsonify({'error': 'Email already exists'}), 400
+        return jsonify({'error': 'Email o nombre de usuario ya existe'}), 400
     except Exception as e:
         conn.close()
         return jsonify({'error': str(e)}), 500

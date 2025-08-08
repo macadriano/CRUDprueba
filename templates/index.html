@@ -96,6 +96,39 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        .password-input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+            z-index: 1;
+        }
+
+        .password-toggle:hover {
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+
+        .password-group input {
+            padding-right: 50px;
+        }
+
+        .password-display {
+            font-family: monospace;
+            color: #666;
+            font-size: 14px;
+        }
+
         .btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -254,8 +287,21 @@
                             <input type="text" id="name" name="name" required>
                         </div>
                         <div class="form-group">
+                            <label for="username">Nombre de usuario *</label>
+                            <input type="text" id="username" name="username" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
                             <label for="email">Email *</label>
                             <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group password-group">
+                            <label for="password">Contraseña *</label>
+                            <div class="password-input-container">
+                                <input type="password" id="password" name="password" required>
+                                <button type="button" class="password-toggle" onclick="togglePassword()">👁️</button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="age">Edad</label>
@@ -337,7 +383,9 @@
                 
                 userCard.innerHTML = `
                     <h3>${user.name}</h3>
+                    <p><strong>👤 Usuario:</strong> ${user.username}</p>
                     <p><strong>📧 Email:</strong> ${user.email}</p>
+                    <p><strong>🔒 Contraseña:</strong> <span class="password-display">••••••••</span></p>
                     <p><strong>🎂 Edad:</strong> ${user.age || 'No especificada'}</p>
                     <p><strong>📅 Creado:</strong> ${formatDate(user.created_at)}</p>
                     <div class="user-actions">
@@ -372,7 +420,9 @@
             const formData = new FormData(userForm);
             const userData = {
                 name: formData.get('name'),
+                username: formData.get('username'),
                 email: formData.get('email'),
+                password: formData.get('password'),
                 age: formData.get('age') ? parseInt(formData.get('age')) : null
             };
 
@@ -420,7 +470,9 @@
 
                 if (response.ok) {
                     document.getElementById('name').value = user.name;
+                    document.getElementById('username').value = user.username;
                     document.getElementById('email').value = user.email;
+                    document.getElementById('password').value = user.password || '';
                     document.getElementById('age').value = user.age || '';
                     
                     isEditing = true;
@@ -474,6 +526,20 @@
             } catch (error) {
                 console.error('Error:', error);
                 showAlert('Error de conexión', 'error');
+            }
+        }
+
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const toggleButton = document.querySelector('.password-toggle');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleButton.textContent = '🙈';
+            } else {
+                passwordField.type = 'password';
+                toggleButton.textContent = '👁️';
             }
         }
     </script>
